@@ -1,5 +1,6 @@
 #to run
-#scrapy crawl imdb_spider -o movies.csv
+#conda activate PIC16B
+#scrapy crawl imdb_spider -o results.csv
 
 #response.css("div.filmo-row").css("a::text")[0].get()   #to get 'data'
 #response.css("div.filmo-row").css("::attr(id)").getall() #gives id to acting roles
@@ -52,7 +53,9 @@ class ImdbSpider(scrapy.Spider):
         for filmo in filmo_listings:
             role = filmo.css("::attr(id)").get()
             if role[0:3] == 'act':
-                movie_or_TV_name.append(filmo.css("a::text")[0].get())
+                media_name = filmo.css("a::text")[0].get()
+                media_name = media_name.replace(",", "")
+                movie_or_TV_name.append(media_name)
 
         yield {
             "actor": actor_name,
