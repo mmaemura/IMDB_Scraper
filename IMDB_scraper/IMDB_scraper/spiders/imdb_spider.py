@@ -9,25 +9,29 @@ import scrapy
 
 class ImdbSpider(scrapy.Spider):
     """
-
+    class to house our scraper. Will start on the IMDB page for 'Cars', then
+    will crawl to the actors' page for the movie. Then will crawl to each of
+    the actors and gather data on the movies they have all acted in. Yields
+    a csv for all the actors and their movies.
     """
     
-    name = 'imdb_spider'
+    name = 'imdb_spider' #will use this name when calling the spider
 
-    start_urls = ['https://www.imdb.com/title/tt0317219/']
+    start_urls = ['https://www.imdb.com/title/tt0317219/'] #the 'Cars' IMDB page
 
     def parse(self, response):
         """
-
+        Assumes we're on the start url, i.e the main page for Cars on IMDB.
+        Then takes traverses to the 'Cast & crew' page for Cars. 
         """
 
-
         cast_page_link = response.css("li.ipc-inline-list__item a")[2].attrib['href']
-
+        #after testing, we need the second item from
+        #response.css(li.ipc-inline-list__item a)
 
         if cast_page_link:
-            cast_page_link = response.urljoin(cast_page_link)
-            yield scrapy.Request(cast_page_link, callback = self.parse_full_credits)
+            cast_page_link = response.urljoin(cast_page_link) #creates the full url for the 'Cast & crew' page
+            yield scrapy.Request(cast_page_link, callback = self.parse_full_credits) #attempts to crawl to the 'Cast & crew' page
             
     
     def parse_full_credits(self, response):
