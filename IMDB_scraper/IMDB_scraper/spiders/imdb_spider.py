@@ -36,34 +36,58 @@ class ImdbSpider(scrapy.Spider):
     
     def parse_full_credits(self, response):
         """
-
+        Assumes we're on the 'Crew & cast' page for a movie.
+        Will then crawl to the pages of actors listed.
         """
-        
-
+    
         actors_suffixes = [a.attrib["href"] for a in response.css("td.primary_photo a")]
+        #the partial urls for each of the actors, stored in a list
+
         prefix = "https://www.imdb.com/"
+        #first portion of the complete url for the actors' page
+
         actors_urls = [prefix + suffix for suffix in actors_suffixes]
+        #concatenates to produce the full url
+
         for url in actors_urls:
-            yield scrapy.Request(url, callback = self.parse_actor_page)
+            yield scrapy.Request(url, callback = self.parse_actor_page) #attempt to crawl to each of the actors' pages
 
     def parse_actor_page(self, response):
         """
-        
+        Assumes we're on a actor's page on IMDB.
+        Yields a dictionary where the first element is
+        their name, and the second is a list of all
+        their movies with a credited acting role
         """
         actor_name = response.css("span.itemprop::text")[0].get()
-        movie_or_TV_name = []
+        #after testing, we need the 0th element from
+        #response.css('span.itemprop::test')
+        #use get() and ::text to extract just the text
+
+        movie_or_TV_name = [] #initiate list for the names for actor's titles
 
         filmo_listings = response.css("div.filmo-row")
-        for filmo in filmo_listings:
-            role = filmo.css("::attr(id)").get()
-            if role[0:3] == 'act':
-                media_name = filmo.css("a::text")[0].get()
-                media_name = media_name.replace(",", "")
-                movie_or_TV_name.append(media_name)
+        #list for each item in the filmographing section
 
-        yield {
-            "actor": actor_name,
-            "movie_or_TV_name": movie_or_TV_name
+        for filmo in filmo_listings: #iterate over each credit
+            role = filmo.css("::attr(id)").get()
+            #extract the type of work, e.g actor/actress, producer,
+            #writer, soundtrack, etc
+
+            if role[0:3] == 'act': #check if 'actor' or 'actress'
+                media_name = filmo.css("a::text")[0].get()
+                #get the texts of links, after experimenting,
+                #we want the 0th element
+
+                media_name = media_name.replace(",", "")
+                #remove commas because extracting to csv later on
+
+                movie_or_TV_name.append(media_name)
+                #add to the list
+
+        yield { #final output
+            "actor": actor_name, #string
+            "movie_or_TV_name": movie_or_TV_name #list of strings
         }
 
 
